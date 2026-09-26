@@ -1,12 +1,9 @@
 import { Hono } from "hono";
-import { cors } from "hono/cors";
 import { privateKeyToAccount } from "viem/accounts";
 import { keccak256, stringToHex } from "viem";
 import { signRequest } from "@worldcoin/idkit-core/signing";
 
 type Env = {
-  /** Optional comma-separated CORS allowlist (e.g. "https://app.example.com"). */
-  ALLOWED_ORIGINS?: string;
   WORLD_RP_ID: string;
   WORLD_ACTION: string;
   /**
@@ -39,40 +36,6 @@ type WorldVerifyResponse = {
 };
 
 const app = new Hono<{ Bindings: Env }>();
-
-/**
- * CORS.
- *
- * The webui runs on a different origin (dev: http://localhost:4321) than the
- * verifier, so browsers block the cross-origin requests without these headers.
- *
- * ALLOWED_ORIGINS is a comma-separated allowlist; when unset we reflect the
- * request origin so local development works out of the box. Set it explicitly
- * in production to avoid allowing arbitrary origins.
- */
-app.use("*", async (c, next) => {
-  const allowList = (c.env.ALLOWED_ORIGINS ?? "")
-    .split(",")
-    .map((origin) => origin.trim())
-    .filter(Boolean);
-
-  const requestOrigin = c.req.header("origin");
-
-  let origin = "*";
-
-  if (allowList.length > 0) {
-    origin = requestOrigin && allowList.includes(requestOrigin) ? requestOrigin : "";
-  } else if (requestOrigin) {
-    origin = requestOrigin;
-  }
-
-  return cors({
-    origin,
-    allowMethods: ["GET", "POST", "OPTIONS"],
-    allowHeaders: ["Content-Type"],
-    maxAge: 86400,
-  })(c, next);
-});
 
 function stableJson(value: unknown): string {
   if (value === null || typeof value !== "object") {
