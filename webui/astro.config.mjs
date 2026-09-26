@@ -1,15 +1,15 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';
+import react from '@astrojs/react';
 
 // https://astro.build/config
 export default defineConfig({
-  // Disable Astro sessions: this app is fully client-side and does not use
-  // server-side sessions. The Cloudflare adapter otherwise auto-enables a KV
-  // binding named `SESSION`, which requires a namespace_id at deploy time.
+  adapter: cloudflare(),
+  integrations: [react()],
+  // This app does not use Astro sessions. The Cloudflare adapter otherwise
+  // auto-enables a KV session driver and emits a `SESSION` KV binding without
+  // a namespace_id into the generated wrangler config, which fails deploys
+  // with error 10021. Disable sessions to keep the generated config clean.
   session: false,
-  adapter: cloudflare({
-    // Skip the Cloudflare Images binding requirements for build/preview.
-    imageService: 'passthrough',
-  }),
 });

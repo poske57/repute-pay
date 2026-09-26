@@ -1,0 +1,20 @@
+---
+import JobsDashboard from "../components/JobsDashboard.tsx";
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Jobs dashboard">
+  <header class="page-head">
+    <h1>Jobs dashboard</h1>
+    <p class="muted">作成したジョブの一覧と、新しいジョブの追加を行います。</p>
+  </header>
+
+  <JobsDashboard client:only="react" />
+</Layout>
+
+<style>
+  .page-head h1 {
+    margin: 0 0 0.25rem;
+    font-size: 1.6rem;
+  }
+</style>
