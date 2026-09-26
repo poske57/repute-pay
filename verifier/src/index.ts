@@ -4,17 +4,24 @@ import { keccak256, stringToHex } from "viem";
 
 type Env = {
   WORLD_RP_ID: string;
+  WORLD_ACTION: string;
   SIGNING_PRIVATE_KEY: `0x${string}`;
 };
 
 type VerifyRequest = {
   idkitResponse: unknown;
+  action?: string;
+  signal?: string;
+  actionDescription?: string;
 };
 
 type WorldVerifyResponse = {
   success?: boolean;
   nullifier_hash?: string;
   verification_level?: string;
+  code?: string;
+  detail?: string;
+  attribute?: string;
   [key: string]: unknown;
 };
 
@@ -80,6 +87,21 @@ app.post("/verify", async (c) => {
     );
   }
 
+  // World ID v4 の verify エンドポイントは uniqueness proof の場合
+  // action が必須。トップレベルで渡す必要がある。
+  const action = body.action ?? c.env.WORLD_ACTION;
+
+  if (!action) {
+    return c.json(
+      {
+        ok: false,
+        error: "action_required",
+        detail: "action is required for uniqueness proofs",
+      },
+      400
+    );
+  }
+
   const verifyUrl =
     `https://developer.world.org/api/v4/verify/` +
     encodeURIComponent(c.env.WORLD_RP_ID);
@@ -93,7 +115,16 @@ app.post("/verify", async (c) => {
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        idkitResponse: body.idkitResponse,
+        // World ID v4 の verify は { action, responses: [...] } 形式。
+        // 各レスポンスの idkitResponse は文字列化して渡す。
+        action,
+        ...(body.signal !== undefined ? { signal: body.signal } : {}),
+        ...(body.actionDescription !== undefined
+          ? { action_description: body.actionDescription }
+          : {}),
+        responses: [
+          { identifier: "idkitResponse", idkitResponse: JSON.stringify(body.idkitResponse) },
+        ],
       }),
     });
   } catch {
@@ -115,8 +146,10 @@ app.post("/verify", async (c) => {
         ok: false,
         error: "world_id_verification_failed",
         world: worldResult,
+        detail: worldResult?.detail ?? null,
+        code: worldResult?.code ?? null,
       },
-      401
+      response.status >= 400 ? response.status : 401
     );
   }
 
