@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { cors } from "hono/cors";
 import { privateKeyToAccount } from "viem/accounts";
 import { keccak256, stringToHex } from "viem";
 import { signRequest } from "@worldcoin/idkit-core/signing";
@@ -36,6 +37,18 @@ type WorldVerifyResponse = {
 };
 
 const app = new Hono<{ Bindings: Env }>();
+
+// Accept requests from any origin (the webui is served from a different
+// origin than the verifier worker).
+app.use(
+  "*",
+  cors({
+    origin: "*",
+    allowMethods: ["GET", "POST", "OPTIONS"],
+    allowHeaders: ["Content-Type"],
+    maxAge: 86400,
+  })
+);
 
 function stableJson(value: unknown): string {
   if (value === null || typeof value !== "object") {
