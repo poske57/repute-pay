@@ -1,0 +1,16 @@
+{
+  "name": "verifier",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "ethers": "^6.17.0",
+    "hono": "^4.13.9"
+  }
+}

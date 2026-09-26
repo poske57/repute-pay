@@ -4,7 +4,7 @@ services:
     container_name: astro-dev
     working_dir: /app
     volumes:
-      - .:/app
+      - ./webui:/app
     ports:
       - "4321:4321"
     command: npm run dev -- --host
