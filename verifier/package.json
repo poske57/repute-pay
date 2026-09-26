@@ -4,17 +4,28 @@
   "description": "",
   "license": "ISC",
   "author": "",
-  "type": "commonjs",
-  "main": "server.js",
+  "type": "module",
+  "main": "src/index.ts",
   "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "cf-typegen": "wrangler types",
+    "typecheck": "tsc --noEmit",
+    "postinstall": "node scripts/patch-workerd.mjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
     "@hono/node-server": "^2.1.1",
     "@noble/curves": "^2.4.0",
+    "@worldcoin/idkit-core": "^4.3.0",
     "dotenv": "^18.0.4",
     "ethers": "^6.17.0",
     "hono": "^4.13.9",
     "viem": "^2.56.9"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260925.1",
+    "typescript": "^5.9.3",
+    "wrangler": "^4.141.0"
   }
 }
