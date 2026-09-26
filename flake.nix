@@ -15,6 +15,7 @@
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
             foundry
+            vscode-solidity-server
           ];
         };
       }
