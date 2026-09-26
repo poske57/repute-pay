@@ -1,5 +1,8 @@
 WORLD_RP_ID=rp_07f5ccec8408bd88
-WORLD_ACTION=verify
+WORLD_ACTION=register
+# Optional comma-separated CORS allowlist. When unset, the request origin is
+# reflected (convenient for local dev; set explicitly in production).
+# ALLOWED_ORIGINS=http://localhost:4321,https://your-webui.example.com
 # RP signing key from the Developer Portal (never expose client-side).
 RP_SIGNING_KEY=0x0000000000000000000000000000000000000000000000000000000000000001
 # Key this worker uses to sign verification receipts.
