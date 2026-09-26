@@ -1,11 +1,36 @@
 services:
-  astro-dev:
+  verifier:
     image: docker.io/library/node:22
-    container_name: astro-dev
+    container_name: verifier
+    working_dir: /app
+    volumes:
+      - ./verifier:/app
+    ports:
+      - "8787:8787"
+    environment:
+      # wrangler dev reads secrets/vars from ./verifier/.dev.vars
+      WRANGLER_SEND_METRICS: "false"
+    # Bind to 0.0.0.0 so the published port is reachable from the host/browser.
+    # node_modules (incl. the NixOS-patched workerd) come from the bind mount.
+    command: npx wrangler dev --ip 0.0.0.0 --port 8787
+    tty: true
+
+  webui:
+    image: docker.io/library/node:22
+    container_name: webui
     working_dir: /app
     volumes:
       - ./webui:/app
     ports:
       - "4321:4321"
-    command: npm run dev -- --host
+    environment:
+      # Baked into the client bundle at build time. Runs in the browser, so the
+      # URL must be the host-published verifier port, not the service hostname.
+      PUBLIC_VERIFIER_URL: "http://localhost:8787"
+      WRANGLER_SEND_METRICS: "false"
+    depends_on:
+      - verifier
+    # Build first so dist/client/wrangler.json is generated with container-local
+    # paths, then serve the built worker with wrangler dev.
+    command: sh -c "npm run build && npx wrangler dev --config dist/client/wrangler.json --ip 0.0.0.0 --port 4321"
     tty: true
