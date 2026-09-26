@@ -50,8 +50,8 @@ export default function JobsDashboard() {
       <section className="card">
         <h2>Jobs dashboard</h2>
         <p className="err">
-          コントラクトアドレスが未設定です。<code>PUBLIC_JOBS_MANAGER_ADDRESS</code>{" "}
-          を設定してビルドしてください。
+          Contract address is not set. Set <code>PUBLIC_JOBS_MANAGER_ADDRESS</code>{" "}
+          and rebuild.
         </p>
       </section>
     );
@@ -62,7 +62,7 @@ export default function JobsDashboard() {
       <section className="card">
         <h2>Jobs dashboard</h2>
         <p className="muted">
-          ウォレットを検出できませんでした。ブラウザウォレットをインストールしてください。
+          Could not detect a wallet. Install a browser wallet.
         </p>
       </section>
     );
@@ -73,7 +73,7 @@ export default function JobsDashboard() {
       <section className="card">
         <h2>Jobs dashboard</h2>
         <p className="muted">
-          ジョブを表示するには、右上の「Connect wallet」でウォレットを接続してください。
+          To view jobs, connect a wallet using "Connect wallet" in the top right.
         </p>
       </section>
     );
@@ -84,7 +84,7 @@ export default function JobsDashboard() {
       <section className="card">
         <h2>Jobs dashboard</h2>
         <p className="err">
-          {chainMetadata(CHAIN_ID).name} (chainId {CHAIN_ID}) に接続してください。
+          Connect to {chainMetadata(CHAIN_ID).name} (chainId {CHAIN_ID}).
         </p>
       </section>
     );

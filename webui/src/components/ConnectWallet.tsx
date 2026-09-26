@@ -24,9 +24,9 @@ export default function ConnectWallet() {
     return (
       <span
         className="wallet-note"
-        title="MetaMask 等のブラウザウォレットを検出できませんでした"
+        title="Could not detect a browser wallet such as MetaMask"
       >
-        ウォレット未検出
+        No wallet detected
       </span>
     );
   }
@@ -39,7 +39,7 @@ export default function ConnectWallet() {
           onClick={() => void connectWallet()}
           disabled={wallet.connecting}
         >
-          {wallet.connecting ? "接続中…" : "Connect wallet"}
+          {wallet.connecting ? "Connecting…" : "Connect wallet"}
         </button>
         {wallet.error ? <span className="wallet-error">{wallet.error}</span> : null}
       </div>
@@ -57,13 +57,13 @@ export default function ConnectWallet() {
           type="button"
           className="switch"
           onClick={() => void switchToExpectedChain()}
-          title={`${chainMetadata(CHAIN_ID).name} (${CHAIN_ID}) に切り替えます`}
+          title={`Switch to ${chainMetadata(CHAIN_ID).name} (${CHAIN_ID})`}
         >
-          {wallet.chainId !== null ? `Chain ${wallet.chainId}` : "Wrong chain"} → 切り替え
+          {wallet.chainId !== null ? `Chain ${wallet.chainId}` : "Wrong chain"} → Switch
         </button>
       ) : null}
       <button type="button" className="secondary" onClick={disconnectWallet}>
-        切断
+        Disconnect
       </button>
       {wallet.error ? <span className="wallet-error">{wallet.error}</span> : null}
     </div>

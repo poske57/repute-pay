@@ -78,10 +78,10 @@ export async function connectWallet(): Promise<void> {
     if (cause instanceof NoWalletError) {
       patch({ error: cause.message });
     } else if ((cause as { code?: number }).code === 4001) {
-      patch({ error: "接続が拒否されました。" });
+      patch({ error: "Connection was rejected." });
     } else {
       patch({
-        error: (cause as Error).message ?? "ウォレットへの接続に失敗しました。",
+        error: (cause as Error).message ?? "Failed to connect to the wallet.",
       });
     }
   } finally {
@@ -101,7 +101,7 @@ export async function switchToExpectedChain(): Promise<boolean> {
     const switched = await switchChain(CHAIN_ID);
     if (!switched) {
       patch({
-        error: `ウォレットに ${chainMetadata(CHAIN_ID).name} (chainId ${CHAIN_ID}) が登録されていません。`,
+        error: `${chainMetadata(CHAIN_ID).name} (chainId ${CHAIN_ID}) is not added to the wallet.`,
       });
       return false;
     }
@@ -109,10 +109,10 @@ export async function switchToExpectedChain(): Promise<boolean> {
     return true;
   } catch (cause) {
     if ((cause as { code?: number }).code === 4001) {
-      patch({ error: "チェーン切り替えが拒否されました。" });
+      patch({ error: "Chain switch was rejected." });
     } else {
       patch({
-        error: (cause as Error).message ?? "チェーン切り替えに失敗しました。",
+        error: (cause as Error).message ?? "Failed to switch chains.",
       });
     }
     return false;

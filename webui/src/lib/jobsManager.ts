@@ -52,7 +52,7 @@ export interface Stake {
 export class MissingContractError extends Error {
   constructor() {
     super(
-      "コントラクトアドレスが設定されていません。PUBLIC_JOBS_MANAGER_ADDRESS を設定してください。",
+      "Contract address is not configured. Set PUBLIC_JOBS_MANAGER_ADDRESS.",
     );
     this.name = "MissingContractError";
   }

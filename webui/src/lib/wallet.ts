@@ -25,7 +25,7 @@ declare global {
 export class NoWalletError extends Error {
   constructor() {
     super(
-      "ウォレットが見つかりませんでした。MetaMask 等のブラウザウォレットをインストールしてください。",
+      "No wallet found. Install a browser wallet such as MetaMask.",
     );
     this.name = "NoWalletError";
   }
@@ -74,7 +74,7 @@ export async function getChainId(): Promise<number> {
   const provider = getProvider();
   const value = await provider.request({ method: "eth_chainId" });
   if (typeof value !== "string") {
-    throw new Error("ウォレットが不正な chainId を返しました");
+    throw new Error("Wallet returned an invalid chainId");
   }
   return Number.parseInt(value, 16);
 }
@@ -146,7 +146,7 @@ export function isUserRejected(cause: unknown): boolean {
  */
 export function describeWalletError(cause: unknown): string {
   if (isUserRejected(cause)) {
-    return "ウォレットでリクエストが拒否されました。";
+    return "The request was rejected in the wallet.";
   }
 
   const error = cause as {
@@ -160,6 +160,6 @@ export function describeWalletError(cause: unknown): string {
     error.shortMessage ??
     error.details ??
     error.message ??
-    "不明なエラーが発生しました。"
+    "An unknown error occurred."
   );
 }

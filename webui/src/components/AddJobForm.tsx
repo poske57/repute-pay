@@ -63,16 +63,16 @@ function isAddress(value: string): value is Address {
 function parseAmount(value: string, decimals: number): bigint {
   const trimmed = value.trim();
   if (!/^\d+(\.\d+)?$/.test(trimmed)) {
-    throw new Error("金額は正の数値で入力してください。");
+    throw new Error("Amount must be a positive number.");
   }
   const [whole, fraction = ""] = trimmed.split(".");
   if (fraction.length > decimals) {
-    throw new Error(`小数点以下は最大 ${decimals} 桁です。`);
+    throw new Error(`At most ${decimals} decimal places are allowed.`);
   }
   const padded = fraction.padEnd(decimals, "0");
   const amount = BigInt(whole) * 10n ** BigInt(decimals) + BigInt(padded || "0");
   if (amount === 0n) {
-    throw new Error("金額は 0 より大きい必要があります。");
+    throw new Error("Amount must be greater than 0.");
   }
   return amount;
 }
@@ -94,7 +94,7 @@ export default function AddJobForm({ onCreated }: Props) {
     event.preventDefault();
     if (!wallet.address) {
       setPhase("error");
-      setMessage("ウォレットを接続してください。");
+      setMessage("Please connect your wallet.");
       return;
     }
 
@@ -103,19 +103,19 @@ export default function AddJobForm({ onCreated }: Props) {
 
     try {
       if (!isAddress(asset)) {
-        throw new Error("asset は ERC-20 アドレス (0x...) を入力してください。");
+        throw new Error("asset must be an ERC-20 address (0x...).");
       }
       if (!isAddress(resolver)) {
-        throw new Error("resolver はアドレス (0x...) を入力してください。");
+        throw new Error("resolver must be an address (0x...).");
       }
       if (resolver.toLowerCase() === wallet.address.toLowerCase()) {
-        throw new Error("resolver に自分自身は指定できません。");
+        throw new Error("resolver cannot be yourself.");
       }
 
       const supported = await readIsSupportedAsset(asset);
       if (!supported) {
         throw new Error(
-          "この asset はコントラクトで許可されていません（stakeRequirement が 0）。",
+          "This asset is not allowed by the contract (stakeRequirement is 0).",
         );
       }
 
@@ -129,7 +129,7 @@ export default function AddJobForm({ onCreated }: Props) {
       const parsedAmount = parseAmount(amount, Number(decimals));
       const parsedDuration = Number(durationHours);
       if (!Number.isFinite(parsedDuration) || parsedDuration <= 0) {
-        throw new Error("期間（時間）は正の数値で入力してください。");
+        throw new Error("Duration (hours) must be a positive number.");
       }
       const durationSeconds = Math.floor(parsedDuration * 3600);
 
@@ -144,7 +144,7 @@ export default function AddJobForm({ onCreated }: Props) {
       })) as bigint;
 
       if (currentAllowance < parsedAmount) {
-        setMessage("トークンの approve をウォレットで承認してください…");
+        setMessage("Approve the token in your wallet…");
         const walletClient = await getWalletClient();
         const approveHash = await walletClient.writeContract({
           address: asset,
@@ -157,7 +157,7 @@ export default function AddJobForm({ onCreated }: Props) {
         await publicClient.waitForTransactionReceipt({ hash: approveHash });
       }
 
-      setMessage("createJob トランザクションを送信しています…");
+      setMessage("Sending the createJob transaction…");
       const jobHash = jobHashText.trim()
         ? (toHex(jobHashText.trim()) as `0x${string}`)
         : (pad("0x00", { size: 32 }) as `0x${string}`);
@@ -171,7 +171,7 @@ export default function AddJobForm({ onCreated }: Props) {
       });
 
       setPhase("success");
-      setMessage("ジョブを作成しました。");
+      setMessage("Job created.");
       setJobHashText("");
       setAmount("");
       onCreated();
@@ -188,28 +188,28 @@ export default function AddJobForm({ onCreated }: Props) {
       <h2>Add job</h2>
       {wrongChain ? (
         <p className="err">
-          {chainMetadata(CHAIN_ID).name} に接続してください。
+          Connect to {chainMetadata(CHAIN_ID).name}.
         </p>
       ) : null}
 
       <form onSubmit={submit}>
         <div className="field">
-          <label htmlFor="job-hash">ジョブ内容 (jobHash)</label>
+          <label htmlFor="job-hash">Job content (jobHash)</label>
           <input
             id="job-hash"
             type="text"
-            placeholder="例: ipfs://… やメモ（UTF-8 で bytes32 に変換）"
+            placeholder="e.g. ipfs://… or a note (converted to bytes32 as UTF-8)"
             value={jobHashText}
             onChange={(event) => setJobHashText(event.target.value)}
             autoComplete="off"
           />
           <small>
-            off-chain のジョブ識別子。空欄の場合はゼロ埋めされた bytes32 になります。
+            Off-chain job identifier. If left blank, it becomes a zero-padded bytes32.
           </small>
         </div>
 
         <div className="field">
-          <label htmlFor="asset">支払い資産 (asset)</label>
+          <label htmlFor="asset">Payment asset (asset)</label>
           <input
             id="asset"
             type="text"
@@ -218,24 +218,24 @@ export default function AddJobForm({ onCreated }: Props) {
             onChange={(event) => setAsset(event.target.value)}
             autoComplete="off"
           />
-          <small>コントラクトで許可された ERC-20 アドレス。</small>
+          <small>ERC-20 address allowed by the contract.</small>
         </div>
 
         <div className="field">
-          <label htmlFor="amount">金額 (amount)</label>
+          <label htmlFor="amount">Amount</label>
           <input
             id="amount"
             type="text"
-            placeholder="例: 100.5"
+            placeholder="e.g. 100.5"
             value={amount}
             onChange={(event) => setAmount(event.target.value)}
             autoComplete="off"
           />
-          <small>トークンの表示単位で入力します（decimals に応じて変換）。</small>
+          <small>Enter in the token's display units (converted according to decimals).</small>
         </div>
 
         <div className="field">
-          <label htmlFor="duration">期間（時間）</label>
+          <label htmlFor="duration">Duration (hours)</label>
           <input
             id="duration"
             type="number"
@@ -243,11 +243,11 @@ export default function AddJobForm({ onCreated }: Props) {
             value={durationHours}
             onChange={(event) => setDurationHours(event.target.value)}
           />
-          <small>acceptJob までの猶予（creationTime + duration）。</small>
+          <small>Grace period until acceptJob (creationTime + duration).</small>
         </div>
 
         <div className="field">
-          <label htmlFor="resolver">resolver アドレス</label>
+          <label htmlFor="resolver">resolver address</label>
           <input
             id="resolver"
             type="text"
@@ -256,12 +256,12 @@ export default function AddJobForm({ onCreated }: Props) {
             onChange={(event) => setResolver(event.target.value)}
             autoComplete="off"
           />
-          <small>ジョブの完了を判定する第三者のアドレス。</small>
+          <small>Address of the third party that determines job completion.</small>
         </div>
 
         <div className="row">
           <button type="submit" disabled={disabled}>
-            {phase === "submitting" ? "処理中…" : "Create job"}
+            {phase === "submitting" ? "Processing…" : "Create job"}
           </button>
         </div>
       </form>

@@ -79,13 +79,13 @@ export async function fetchRpContext(
   if (!response.ok) {
     const detail = await response.text().catch(() => "");
     throw new Error(
-      `RP 署名の取得に失敗しました (HTTP ${response.status})${detail ? `: ${detail}` : ""}`,
+      `Failed to fetch RP signature (HTTP ${response.status})${detail ? `: ${detail}` : ""}`,
     );
   }
 
   const data = (await response.json()) as Partial<RpSignature>;
   if (!data.sig || !data.nonce || !data.created_at || !data.expires_at) {
-    throw new Error("RP 署名のレスポンス形式が不正です");
+    throw new Error("Invalid RP signature response format");
   }
 
   return {
@@ -112,7 +112,7 @@ export async function verifyIdkitResult(
     });
   } catch (cause) {
     throw new Error(
-      `verifier に接続できませんでした (${verifierUrl})。ネットワークと CORS を確認してください。`,
+      `Could not connect to the verifier (${verifierUrl}). Check the network and CORS.`,
       { cause },
     );
   }
@@ -120,7 +120,7 @@ export async function verifyIdkitResult(
   const data = (await response.json().catch(() => null)) as VerifyResponse | null;
   if (!data) {
     throw new Error(
-      `verifier のレスポンスを解析できませんでした (HTTP ${response.status})`,
+      `Could not parse the verifier response (HTTP ${response.status})`,
     );
   }
 
@@ -130,7 +130,7 @@ export async function verifyIdkitResult(
     const stage = data.stage ? ` @${data.stage}` : "";
     const detail = data.detail ?? data.error ?? "unknown error";
     const error = new Error(
-      `バックエンド検証に失敗しました${code}${reason}${stage}: ${detail}`,
+      `Backend verification failed${code}${reason}${stage}: ${detail}`,
     );
     (error as Error & { detail?: unknown }).detail = data;
     throw error;

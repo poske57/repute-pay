@@ -99,10 +99,10 @@ export default function Registration() {
     setRegisterData(null);
     try {
       if (!WORLD_APP_ID) {
-        throw new Error("PUBLIC_WORLD_APP_ID が未設定です。");
+        throw new Error("PUBLIC_WORLD_APP_ID is not set.");
       }
       if (!WORLD_RP_ID) {
-        throw new Error("PUBLIC_WORLD_RP_ID が未設定です。");
+        throw new Error("PUBLIC_WORLD_RP_ID is not set.");
       }
       const context = await fetchRpContext();
       setRpContext(context);
@@ -120,18 +120,18 @@ export default function Registration() {
    */
   async function handleVerify(result: IDKitResult) {
     if (!wallet.address) {
-      throw new Error("ウォレットが接続されていません。");
+      throw new Error("Wallet is not connected.");
     }
 
     setPhase("submitting");
-    setMessage("World ID の証明を verifier で検証しています…");
+    setMessage("Verifying World ID proof with the verifier…");
 
     try {
       const receipt = await verifyIdkitResult(result, wallet.address);
       const data = buildRegisterData(receipt, wallet.address);
       if (!data) {
         throw new Error(
-          "verifier が registerAndStake に必要な nullifier / serviceSignature を返しませんでした。verifier のレスポンス形式を確認してください。",
+          "The verifier did not return the nullifier / serviceSignature required for registerAndStake. Check the verifier's response format.",
         );
       }
       setRegisterData(data);
@@ -148,12 +148,12 @@ export default function Registration() {
       return;
     }
 
-    setMessage("registerAndStake トランザクションを送信しています…");
+    setMessage("Sending the registerAndStake transaction…");
     try {
       const hash = await registerAndStake(stakeAsset(), registerData);
       setTxHash(hash);
       setPhase("success");
-      setMessage("登録が完了しました。");
+      setMessage("Registration complete.");
       await loadStatus(wallet.address);
     } catch (cause) {
       setPhase("error");
@@ -167,12 +167,12 @@ export default function Registration() {
     }
     setPhase("submitting");
     setTxHash(null);
-    setMessage("unregisterAndUnstake トランザクションを送信しています…");
+    setMessage("Sending the unregisterAndUnstake transaction…");
     try {
       const hash = await unregisterAndUnstake();
       setTxHash(hash);
       setPhase("success");
-      setMessage("登録解除が完了しました。ステークが返還されました。");
+      setMessage("Unregistration complete. Your stake has been returned.");
       await loadStatus(wallet.address);
     } catch (cause) {
       setPhase("error");
@@ -182,7 +182,7 @@ export default function Registration() {
 
   function handleIdkitError(code: IDKitErrorCodes) {
     setPhase("error");
-    setMessage(`World ID エラー: ${code}`);
+    setMessage(`World ID error: ${code}`);
   }
 
   // --- Render ---------------------------------------------------------------
@@ -192,8 +192,8 @@ export default function Registration() {
       <section className="card">
         <h2>Registration</h2>
         <p className="err">
-          コントラクトアドレスが未設定です。<code>PUBLIC_JOBS_MANAGER_ADDRESS</code>{" "}
-          を設定してビルドしてください。
+          Contract address is not set. Set <code>PUBLIC_JOBS_MANAGER_ADDRESS</code>{" "}
+          and rebuild.
         </p>
       </section>
     );
@@ -204,8 +204,8 @@ export default function Registration() {
       <section className="card">
         <h2>Registration</h2>
         <p className="muted">
-          ウォレットを検出できませんでした。MetaMask 等のブラウザウォレットを
-          インストールしてから、右上の「Connect wallet」を押してください。
+          Could not detect a wallet. Install a browser wallet such as MetaMask,
+          then click "Connect wallet" in the top right.
         </p>
       </section>
     );
@@ -216,7 +216,8 @@ export default function Registration() {
       <section className="card">
         <h2>Registration</h2>
         <p className="muted">
-          登録状況を確認するには、右上の「Connect wallet」でウォレットを接続してください。
+          To check your registration status, connect a wallet using "Connect
+          wallet" in the top right.
         </p>
       </section>
     );
@@ -227,8 +228,8 @@ export default function Registration() {
       <section className="card">
         <h2>Registration</h2>
         <p className="err">
-          ウォレットが {chainMetadata(CHAIN_ID).name} (chainId {CHAIN_ID}) に接続されていません。
-          右上の「切り替え」を押してください。
+          The wallet is not connected to {chainMetadata(CHAIN_ID).name} (chainId {CHAIN_ID}).
+          Press "Switch" in the top right.
         </p>
       </section>
     );
@@ -238,7 +239,7 @@ export default function Registration() {
     return (
       <section className="card">
         <h2>Registration</h2>
-        <p className="muted">アカウント状況を読み込んでいます…</p>
+        <p className="muted">Loading account status…</p>
         {statusError ? <p className="err">{statusError}</p> : null}
       </section>
     );
@@ -248,27 +249,27 @@ export default function Registration() {
     <div>
       <section className="card">
         <h2>
-          アカウント状況
+          Account status
           <span className="badge" data-on={staked}>
-            {staked ? "登録済み" : "未登録"}
+            {staked ? "Registered" : "Not registered"}
           </span>
         </h2>
         <dl className="kv">
-          <dt>アドレス</dt>
+          <dt>Address</dt>
           <dd>
             <code>{formatAddress(wallet.address)}</code>
           </dd>
-          <dt>ネットワーク</dt>
+          <dt>Network</dt>
           <dd>
             {chainMetadata(CHAIN_ID).name} ({CHAIN_ID})
           </dd>
           {staked && stake ? (
             <>
-              <dt>ステーク資産</dt>
+              <dt>Staked asset</dt>
               <dd>
                 <code>{formatAddress(stake.stakedAsset)}</code>
               </dd>
-              <dt>ステーク額</dt>
+              <dt>Staked amount</dt>
               <dd>{formatTokenAmount(stake.stakedAmount)}</dd>
             </>
           ) : null}
@@ -335,22 +336,22 @@ function RegisterPanel({
     <section className="card">
       <h2>Register</h2>
       <p className="muted">
-        World ID で人間であることを証明し、ステークを行ってクライアントとして登録します。
+        Prove you are human with World ID and register as a client by staking.
       </p>
 
       <ol className="steps">
         <li>
-          <strong>World ID 認証</strong> — 下のボタンから認証を開始します。
+          <strong>World ID verification</strong> — start verification from the button below.
         </li>
         <li>
-          <strong>トランザクション送信</strong> — 認証後、ウォレットで{" "}
-          <code>registerAndStake</code> を承認します。
+          <strong>Send transaction</strong> — after verification, approve{" "}
+          <code>registerAndStake</code> in your wallet.
         </li>
       </ol>
 
       <div className="row">
         <button type="button" onClick={onStart} disabled={busy}>
-          {busy ? "処理中…" : "World ID で認証して登録"}
+          {busy ? "Processing…" : "Verify with World ID and register"}
         </button>
       </div>
 
@@ -395,11 +396,12 @@ function UnregisterPanel({
     <section className="card">
       <h2>Unregister</h2>
       <p className="muted">
-        登録を解除し、ステークした資産を引き出します。未完了のジョブがある場合は失敗します。
+        Unregister and withdraw your staked assets. This fails if there are any
+        incomplete jobs.
       </p>
       <div className="row">
         <button type="button" className="danger" onClick={onUnregister} disabled={busy}>
-          {busy ? "処理中…" : "Unregister & Unstake"}
+          {busy ? "Processing…" : "Unregister & Unstake"}
         </button>
       </div>
       <StatusBlock phase={phase} message={message} txHash={txHash} />

@@ -1,7 +1,7 @@
 # repute-pay
 - connect wallet button
 ## Registration
-アカウント状況に応じて片方だけ表示する。
+Show only one of them depending on the account status.
 ### Register
 - React WorldID component
 - connect wallet and send register transaction

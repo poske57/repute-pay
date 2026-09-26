@@ -35,7 +35,7 @@ function deriveStatus(job: Job, nowSeconds: number): JobStatus {
       return {
         label: "Expired (open)",
         tone: "cancelled",
-        hint: "クライアントまたは resolver が closeJob でキャンセルできます。",
+        hint: "The client or resolver can cancel with closeJob.",
       };
     }
     return {
@@ -51,7 +51,7 @@ function deriveStatus(job: Job, nowSeconds: number): JobStatus {
     return {
       label: "Active (expired)",
       tone: "cancelled",
-      hint: "期限切れです。closeJob で決済できます。",
+      hint: "Expired. It can be settled with closeJob.",
     };
   }
   return { label: "Active", tone: "active" };
@@ -66,7 +66,7 @@ export default function JobList({ jobs, loading, onRefresh }: Props) {
     return (
       <section className="card">
         <h2>Jobs</h2>
-        <p className="muted">ジョブを読み込んでいます…</p>
+        <p className="muted">Loading jobs…</p>
       </section>
     );
   }
@@ -75,7 +75,7 @@ export default function JobList({ jobs, loading, onRefresh }: Props) {
     return (
       <section className="card">
         <h2>Jobs</h2>
-        <p className="muted">まだジョブがありません。上のフォームから作成してください。</p>
+        <p className="muted">No jobs yet. Create one using the form above.</p>
       </section>
     );
   }
@@ -86,7 +86,7 @@ export default function JobList({ jobs, loading, onRefresh }: Props) {
         Jobs
         <span className="badge">{jobs.length}</span>
         <button type="button" className="secondary refresh" onClick={onRefresh}>
-          再読み込み
+          Reload
         </button>
       </h2>
 
