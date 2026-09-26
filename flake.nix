@@ -17,6 +17,7 @@
             foundry
             vscode-solidity-server
             astro-language-server
+            wrangler
           ];
         };
       }
