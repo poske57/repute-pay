@@ -1,9 +1,16 @@
 ---
+import ConnectWallet from "../components/ConnectWallet.tsx";
+
 interface Props {
   title?: string;
 }
 
-const { title = "World ID 4.0 検証フロントエンド" } = Astro.props;
+const { title = "ReputePay" } = Astro.props;
+const pathname = Astro.url.pathname;
+const navItems = [
+  { href: "/", label: "Registration" },
+  { href: "/jobs", label: "Jobs dashboard" },
+];
 ---
 
 <!doctype html>
@@ -14,10 +21,34 @@ const { title = "World ID 4.0 検証フロントエンド" } = Astro.props;
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" />
     <meta name="generator" content={Astro.generator} />
-    <title>{title}</title>
+    <title>{title} · ReputePay</title>
   </head>
   <body>
-    <slot />
+    <header class="site-header">
+      <div class="brand">
+        <span class="logo">RP</span>
+        <span class="name">ReputePay</span>
+      </div>
+      <nav>
+        {
+          navItems.map((item) => (
+            <a
+              href={item.href}
+              class={pathname === item.href ? "active" : ""}
+              aria-current={pathname === item.href ? "page" : undefined}
+            >
+              {item.label}
+            </a>
+          ))
+        }
+      </nav>
+      <div id="wallet-slot" class="wallet-slot">
+        <ConnectWallet client:load />
+      </div>
+    </header>
+    <main>
+      <slot />
+    </main>
   </body>
 </html>
 
@@ -67,5 +98,359 @@ const { title = "World ID 4.0 検証フロントエンド" } = Astro.props;
   code,
   pre {
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+  .site-header {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 0.85rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    flex-wrap: wrap;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 700;
+  }
+
+  .brand .logo {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #3245ff, #bc52ee);
+    font-size: 0.85rem;
+  }
+
+  .site-header nav {
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  .site-header nav a {
+    color: var(--muted);
+    text-decoration: none;
+    padding: 0.4rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.92rem;
+  }
+
+  .site-header nav a:hover {
+    color: var(--text);
+    background: var(--panel-2);
+  }
+
+  .site-header nav a.active {
+    color: var(--text);
+    background: var(--panel-2);
+  }
+
+  .wallet-slot {
+    margin-left: auto;
+  }
+
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 1.75rem 1.25rem 4rem;
+  }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem 1.4rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .card h2 {
+    margin: 0 0 1rem;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    margin-bottom: 1rem;
+  }
+
+  .field label {
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+
+  .field small,
+  .hint {
+    color: var(--muted);
+    font-size: 0.78rem;
+  }
+
+  input,
+  select,
+  textarea {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.55rem 0.7rem;
+    color: var(--text);
+    font-size: 0.95rem;
+    font-family: inherit;
+    width: 100%;
+  }
+
+  input:focus,
+  select:focus,
+  textarea:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+
+  button {
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.6rem 1.2rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  button.secondary {
+    background: var(--panel-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  button.danger {
+    background: var(--err);
+  }
+
+  pre {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.9rem;
+    overflow-x: auto;
+    font-size: 0.8rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 420px;
+    overflow-y: auto;
+  }
+
+  .muted {
+    color: var(--muted);
+  }
+
+  .ok {
+    color: var(--ok);
+  }
+
+  .err {
+    color: var(--err);
+  }
+
+  .row {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .wallet {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .wallet button {
+    padding: 0.45rem 0.9rem;
+    font-size: 0.88rem;
+  }
+
+  .wallet-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.7rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--panel-2);
+    font-size: 0.85rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .wallet-chip .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--err);
+  }
+
+  .wallet-chip .dot[data-ok="true"] {
+    background: var(--ok);
+  }
+
+  .wallet-note {
+    color: var(--muted);
+    font-size: 0.82rem;
+  }
+
+  .wallet-error {
+    color: var(--err);
+    font-size: 0.8rem;
+    flex-basis: 100%;
+  }
+
+  .badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.15rem 0.6rem;
+    border-radius: 999px;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+
+  .badge[data-on="true"] {
+    color: var(--ok);
+    border-color: color-mix(in srgb, var(--ok) 50%, var(--border));
+  }
+
+  .kv {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.35rem 1rem;
+    margin: 0;
+    font-size: 0.9rem;
+  }
+
+  .kv dt {
+    color: var(--muted);
+  }
+
+  .kv dd {
+    margin: 0;
+  }
+
+  .steps {
+    margin: 0 0 1rem;
+    padding-left: 1.25rem;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+
+  .steps li {
+    margin-bottom: 0.35rem;
+  }
+
+  .status {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+  }
+
+  .status p {
+    margin: 0 0 0.35rem;
+  }
+
+  .status.ok p {
+    color: var(--ok);
+  }
+
+  .status.err p {
+    color: var(--err);
+  }
+
+  .page-head {
+    margin-bottom: 1.25rem;
+  }
+
+  .page-head h1 {
+    margin: 0 0 0.25rem;
+    font-size: 1.6rem;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+  }
+
+  th,
+  td {
+    text-align: left;
+    padding: 0.55rem 0.6rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  th {
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+  }
+
+  .pill {
+    display: inline-block;
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--panel-2);
+    font-size: 0.72rem;
+    font-weight: 600;
+    margin-right: 0.3rem;
+  }
+
+  .pill-open {
+    color: var(--warn);
+  }
+
+  .pill-active {
+    color: var(--accent);
+  }
+
+  .pill-done {
+    color: var(--ok);
+  }
+
+  .pill-cancelled {
+    color: var(--err);
+  }
+
+  .pill-escrow {
+    color: var(--muted);
+  }
+
+  .refresh {
+    margin-left: auto;
+    padding: 0.3rem 0.7rem;
+    font-size: 0.8rem;
   }
 </style>

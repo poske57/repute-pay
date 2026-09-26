@@ -1,57 +1,64 @@
-# World ID 4.0 検証フロントエンド (webui)
+# ReputePay web UI
 
-Astro 製のクライアント。`@worldcoin/idkit-core`（v4 系）を使って World ID 4.0 の
-検証フローを実行し、結果を verifier worker に転送してバックエンド検証を行います。
+Astro frontend for the [ReputePay](https://github.com/) JobsManager escrow
+contract. It provides wallet connection, World ID–gated client registration,
+and a jobs dashboard.
 
-## 構成
+## Pages
 
-```text
-src/
-├── env.d.ts              # PUBLIC_VERIFIER_URL などの型定義
-├── layouts/
-│   └── Layout.astro      # HTML シェル + グローバルスタイル
-├── pages/
-│   └── index.astro       # UI（入力フォーム / QR / 状態 / 結果 / エラー）
-└── scripts/
-    └── idkit-flow.ts     # IDKit 検証フローのクライアントロジック
-```
+| Route   | Description |
+| :------ | :---------- |
+| `/`     | **Registration** — shows exactly one panel based on the connected account's on-chain status (`clientStaked`). Unregistered accounts get **Register** (World ID proof, then `registerAndStake`); registered accounts get **Unregister** (`unregisterAndUnstake`). |
+| `/jobs` | **Jobs dashboard** — lists the connected client's jobs (`clientJobs` + `jobs`) and lets them create new ones (`createJob`, with an ERC-20 `approve` when needed). |
 
-## フロー
+## Architecture
 
-1. `POST {verifier}/rp-signature` で RP 署名を取得。
-2. `IDKit.request({ app_id, action, rp_context, allow_legacy_proofs, environment })`
-   を `.preset(proofOfHuman())` で確定。
-3. `request.connectorURI` を QR コードとして描画。
-4. `request.pollUntilCompletion({ pollInterval, timeout })` で完了を待機。
-5. 成功したら completion（IDKit result）をそのまま
-   `POST {verifier}/verify` に送信。
-6. verifier の署名付きレスポンス（`signature`・`payload` 等）を表示。
+- **Astro** renders the static shell; interactive parts are React islands
+  (`client:only="react"`), configured via `@astrojs/react`.
+- **Wallet state** is shared across islands with a `nanostores` store
+  (`src/lib/walletStore.ts`). The connect button lives in the layout header.
+- **Contract access** uses `viem` over the injected EIP-1193 provider
+  (`src/lib/jobsManager.ts`); no RPC URL has to be configured client-side.
+- **World ID** uses the React component from `@worldcoin/idkit`. The RP signing
+  key and Developer Portal calls live in the separate `verifier` worker.
 
-## 設定
+## Configuration
 
-`app_id` / `rp_id` / `action` / `environment` は UI 上で入力します。
+Copy `.env.example` to `.env` and fill in the values. All `PUBLIC_*` variables
+are baked into the client bundle at build time.
 
-| 環境変数                | 既定値                  | 説明                                |
-| :---------------------- | :---------------------- | :---------------------------------- |
-| `PUBLIC_VERIFIER_URL`   | `http://127.0.0.1:8787` | verifier worker のベース URL        |
+| Variable                     | Description |
+| :--------------------------- | :---------- |
+| `PUBLIC_VERIFIER_URL`        | Base URL of the verifier worker (default `http://127.0.0.1:8787`). |
+| `PUBLIC_JOBS_MANAGER_ADDRESS`| Deployed `JobsManager` address. |
+| `PUBLIC_CHAIN_ID`            | Chain the app operates on (default `480`, World Chain). |
+| `PUBLIC_WORLD_APP_ID`        | World ID `app_id` from the Developer Portal. |
+| `PUBLIC_WORLD_RP_ID`         | World ID `rp_id`; must match the verifier's `WORLD_RP_ID`. |
+| `PUBLIC_WORLD_ACTION`        | World ID action; must match the verifier's `WORLD_ACTION` (default `register`). |
+| `PUBLIC_WORLD_ENVIRONMENT`   | `production` / `staging` / `sandbox` (default `production`). |
+| `PUBLIC_STAKE_ASSET`         | ERC-20 used as the registration stake (whitelisted on-chain). |
 
-`.env` に設定するか、ビルド時に環境変数として渡してください。
+## Registration calldata
 
-```sh
-PUBLIC_VERIFIER_URL=https://verifier.example.com npm run build
-```
+`registerAndStake(asset, data)` consumes opaque `data`. For the off-chain
+verification path (`trustedServiceVerifier`) the layout is:
 
-## 開発
+| offset | length | field |
+| :----- | :----- | :---- |
+| 0      | 32     | World ID nullifier |
+| 32     | 20     | bounded EOA (the connected wallet) |
+| 52     | 65     | ECDSA signature over `keccak256(abi.encodePacked(nullifier, eoa, WORLD_APP_ACTION, WORLD_APP_RP_ID))` |
 
-verifier worker を先に起動しておきます（既定 `http://127.0.0.1:8787`）。
+The verifier returns `nullifier` and `serviceSignature`; set its
+`SERVICE_SIGNER_PRIVATE_KEY` to a key whose address equals the contract's
+`trustedServiceVerifier`.
 
-```sh
-# webui
-npm run dev        # http://localhost:4321
-npm run build      # 本番ビルド
-npm run astro check
-```
+## Commands
 
-> 補足: `astro dev --background` は、依存最適化に時間がかかる環境では
-> 既定の 30 秒タイムアウトで起動判定に失敗することがあります。その場合は
-> 通常の `npm run dev` を利用してください。
+| Command                   | Action                                           |
+| :------------------------ | :----------------------------------------------- |
+| `npm install`             | Installs dependencies                            |
+| `npm run dev`             | Starts local dev server at `localhost:4321`      |
+| `npm run build`           | Builds the production site to `./dist/`          |
+| `npm run preview`         | Previews the build locally                       |
+| `npm run deploy`          | Builds and deploys to Cloudflare                 |
