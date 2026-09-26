@@ -16,6 +16,7 @@
           packages = with pkgs; [
             foundry
             vscode-solidity-server
+            astro-language-server
           ];
         };
       }
