@@ -2,3 +2,4 @@
 webui/node_modules/
 verifier/node_modules/
 webui/.astro/
+verifier/.wrangler/
