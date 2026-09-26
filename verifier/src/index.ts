@@ -89,7 +89,7 @@ app.post("/verify", async (c) => {
 
   // World ID v4 の verify エンドポイントは uniqueness proof の場合
   // action が必須。トップレベルで渡す必要がある。
-  const action = body.action ?? c.env.WORLD_ACTION;
+  const action = c.env.WORLD_ACTION;
 
   if (!action) {
     return c.json(
