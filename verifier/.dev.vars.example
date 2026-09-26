@@ -1,6 +1,8 @@
 WORLD_RP_ID=rp_07f5ccec8408bd88
-WORLD_ACTION=verify
+WORLD_ACTION=register
 # RP signing key from the Developer Portal (never expose client-side).
+# This MUST be the key registered for WORLD_RP_ID, otherwise the Developer
+# Portal rejects the RP signature with an opaque world_id_verification_failed.
 RP_SIGNING_KEY=0x0000000000000000000000000000000000000000000000000000000000000001
-# Key this worker uses to sign verification receipts.
+# Key this worker uses to sign verification receipts (independent of the RP key).
 SIGNING_PRIVATE_KEY=0x0000000000000000000000000000000000000000000000000000000000000001

@@ -5,11 +5,17 @@ services:
     working_dir: /app
     volumes:
       - ./verifier:/app
+      # The NixOS-patched workerd (BoringSSL) cannot find a CA bundle inside
+      # the node:22 image reliably; mount the host bundle and point workerd at
+      # it so outbound TLS to the Developer Portal succeeds.
+      - /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/nix-ca-certificates.crt:ro
     ports:
       - "8787:8787"
     environment:
       # wrangler dev reads secrets/vars from ./verifier/.dev.vars
       WRANGLER_SEND_METRICS: "false"
+      SSL_CERT_FILE: "/etc/ssl/certs/nix-ca-certificates.crt"
+      NIX_SSL_CERT_FILE: "/etc/ssl/certs/nix-ca-certificates.crt"
     # Bind to 0.0.0.0 so the published port is reachable from the host/browser.
     # node_modules (incl. the NixOS-patched workerd) come from the bind mount.
     command: npx wrangler dev --ip 0.0.0.0 --port 8787

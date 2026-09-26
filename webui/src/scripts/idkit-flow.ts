@@ -83,9 +83,23 @@ interface VerifySuccessResponse {
 interface VerifyFailureResponse {
   ok: false;
   error?: string;
+  /** Where the failure happened, e.g. "preflight" | "portal_request" | "portal_verification". */
+  stage?: string;
+  /** Machine-readable reason derived by the verifier. */
+  reason?: string;
   world?: unknown;
   detail?: string | null;
   code?: string | null;
+  /** Raw response from the Developer Portal. */
+  portal?: {
+    status?: number;
+    statusText?: string;
+    code?: string | null;
+    detail?: string | null;
+    body?: unknown;
+  };
+  /** Summary of the exact request the verifier sent to the portal. */
+  request?: unknown;
 }
 
 type VerifyResponse = VerifySuccessResponse | VerifyFailureResponse;
@@ -406,12 +420,16 @@ export function initVerificationFlow(): void {
 
     if (!data.ok) {
       const code = data.code ? ` [${data.code}]` : "";
+      const reason = data.reason ? ` (${data.reason})` : "";
+      const stage = data.stage ? ` @${data.stage}` : "";
       const detail =
         data.detail ??
         (typeof data.world === "object" && data.world !== null
           ? JSON.stringify(data.world)
           : data.error ?? "unknown error");
-      const err = new Error(`バックエンド検証に失敗しました${code}: ${detail}`);
+      const err = new Error(
+        `バックエンド検証に失敗しました${code}${reason}${stage}: ${detail}`,
+      );
       (err as Error & { detail?: unknown }).detail = data;
       throw err;
     }
