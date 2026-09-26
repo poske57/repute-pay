@@ -1,5 +1,4 @@
 .direnv/
-webui/node_modules/
-verifier/node_modules/
+*/node_modules/
+*/.wrangler/
 webui/.astro/
-verifier/.wrangler/
