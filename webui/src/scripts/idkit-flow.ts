@@ -32,10 +32,18 @@ import {
 /* Config                                                                     */
 /* -------------------------------------------------------------------------- */
 
-/** Verifier base URL. Overridable with PUBLIC_VERIFIER_URL at build time. */
-const VERIFIER_URL = (
+/**
+ * Default verifier base URL. Overridable with PUBLIC_VERIFIER_URL at build time,
+ * and at runtime via the `verifier URL` input on the page.
+ */
+const DEFAULT_VERIFIER_URL = (
   import.meta.env.PUBLIC_VERIFIER_URL ?? "http://127.0.0.1:8787"
 ).replace(/\/+$/, "");
+
+/** Removes trailing slashes so paths can be appended safely. */
+function normalizeVerifierUrl(value: string): string {
+  return value.trim().replace(/\/+$/, "");
+}
 
 /** Must match the verifier's WORLD_ACTION. */
 const DEFAULT_ACTION = "register";
@@ -251,6 +259,7 @@ async function renderQr(canvas: HTMLCanvasElement, text: string): Promise<void> 
 
 export function initVerificationFlow(): void {
   const form = $<HTMLFormElement>("verify-form");
+  const verifierUrlInput = $<HTMLInputElement>("verifier-url");
   const appIdInput = $<HTMLInputElement>("app-id");
   const rpIdInput = $<HTMLInputElement>("rp-id");
   const actionInput = $<HTMLInputElement>("action");
@@ -277,9 +286,15 @@ export function initVerificationFlow(): void {
 
   // Default values come from query params (handy for repeat runs) or defaults.
   const params = new URLSearchParams(window.location.search);
+  verifierUrlInput.value = params.get("verifier_url") ?? verifierUrlInput.value ?? DEFAULT_VERIFIER_URL;
   appIdInput.value = params.get("app_id") ?? appIdInput.value;
   rpIdInput.value = params.get("rp_id") ?? rpIdInput.value;
   actionInput.value = params.get("action") ?? DEFAULT_ACTION;
+
+  /** Current verifier base URL, taken from the input (falling back to the default). */
+  function currentVerifierUrl(): string {
+    return normalizeVerifierUrl(verifierUrlInput.value) || DEFAULT_VERIFIER_URL;
+  }
 
   let currentRequest: IDKitRequest | null = null;
   let abortController: AbortController | null = null;
@@ -342,8 +357,8 @@ export function initVerificationFlow(): void {
     debugJson.textContent = "";
   }
 
-  async function fetchRpSignature(action: string): Promise<RpSignatureResponse> {
-    const response = await fetch(`${VERIFIER_URL}/rp-signature`, {
+  async function fetchRpSignature(verifierUrl: string, action: string): Promise<RpSignatureResponse> {
+    const response = await fetch(`${verifierUrl}/rp-signature`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ action }),
@@ -365,17 +380,20 @@ export function initVerificationFlow(): void {
     return data as RpSignatureResponse;
   }
 
-  async function callVerify(idkitResponse: IDKitResult): Promise<VerifySuccessResponse> {
+  async function callVerify(
+    verifierUrl: string,
+    idkitResponse: IDKitResult,
+  ): Promise<VerifySuccessResponse> {
     let response: Response;
     try {
-      response = await fetch(`${VERIFIER_URL}/verify`, {
+      response = await fetch(`${verifierUrl}/verify`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ idkitResponse }),
       });
     } catch (cause) {
       throw new Error(
-        `verifier に接続できませんでした (${VERIFIER_URL})。ネットワークと CORS を確認してください。`,
+        `verifier に接続できませんでした (${verifierUrl})。ネットワークと CORS を確認してください。`,
         { cause },
       );
     }
@@ -418,6 +436,7 @@ export function initVerificationFlow(): void {
   }
 
   async function start(): Promise<void> {
+    const verifierUrl = currentVerifierUrl();
     const appId = appIdInput.value.trim() as `app_${string}`;
     const rpId = rpIdInput.value.trim();
     const action = actionInput.value.trim() || DEFAULT_ACTION;
@@ -426,6 +445,19 @@ export function initVerificationFlow(): void {
     clearError();
     clearResult();
     clearDebug();
+
+    try {
+      const parsed = new URL(verifierUrl);
+      if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+        throw new Error("unsupported protocol");
+      }
+    } catch {
+      showError(
+        "verifier URL が不正です",
+        "http:// または https:// で始まる有効な URL を入力してください。",
+      );
+      return;
+    }
 
     if (!appId.startsWith("app_")) {
       showError("app_id が不正です", "app_id は app_... の形式で入力してください。");
@@ -442,7 +474,7 @@ export function initVerificationFlow(): void {
     try {
       // Step 1: RP signature from the verifier.
       setState("requesting-signature");
-      const rpSig = await fetchRpSignature(action);
+      const rpSig = await fetchRpSignature(verifierUrl, action);
 
       const rpContext: RpContext = {
         rp_id: rpId,
@@ -488,7 +520,7 @@ export function initVerificationFlow(): void {
 
       // Step 5: Forward the IDKit result to the verifier verbatim.
       setState("verifying");
-      const verified = await callVerify(completion.result);
+      const verified = await callVerify(verifierUrl, completion.result);
 
       // Step 6: Show the verifier's signed response.
       showResult(verified);
@@ -534,6 +566,11 @@ export function initVerificationFlow(): void {
 
   // Expose for manual debugging in the browser console during development.
   if (isDevBuild) {
-    (window as unknown as { idkitFlow?: unknown }).idkitFlow = { start, reset, VERIFIER_URL };
+    (window as unknown as { idkitFlow?: unknown }).idkitFlow = {
+      start,
+      reset,
+      currentVerifierUrl,
+      DEFAULT_VERIFIER_URL,
+    };
   }
 }

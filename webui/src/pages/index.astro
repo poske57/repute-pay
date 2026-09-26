@@ -17,6 +17,19 @@ const verifierUrl = import.meta.env.PUBLIC_VERIFIER_URL ?? "http://127.0.0.1:878
       <h2>設定</h2>
       <form id="verify-form">
         <div class="field">
+          <label for="verifier-url">verifier URL</label>
+          <input
+            id="verifier-url"
+            name="verifier_url"
+            type="url"
+            value={verifierUrl}
+            placeholder="http://127.0.0.1:8787"
+            autocomplete="off"
+          />
+          <small>verifier worker のベース URL。既定: <code>{verifierUrl}</code>（PUBLIC_VERIFIER_URL）</small>
+        </div>
+
+        <div class="field">
           <label for="app-id">app_id</label>
           <input id="app-id" name="app_id" type="text" placeholder="app_..." autocomplete="off" />
           <small>Developer Portal の app_id（app_...）</small>
