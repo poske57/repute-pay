@@ -2,6 +2,7 @@
 */node_modules/
 */.wrangler/
 webui/.astro/
+webui/dist/
 .env
 .env.*
 !.env.example
