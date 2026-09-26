@@ -5,7 +5,13 @@ import react from '@astrojs/react';
 
 // https://astro.build/config
 export default defineConfig({
-  adapter: cloudflare(),
+  adapter: cloudflare({
+    // This app does not use Astro's image optimization. The default
+    // `cloudflare-binding` service would add an `IMAGES` binding that requires
+    // the Cloudflare Images product; `passthrough` keeps the generated
+    // wrangler config free of image bindings.
+    imageService: 'passthrough',
+  }),
   integrations: [react()],
   // This app does not use Astro sessions. The Cloudflare adapter otherwise
   // auto-enables a KV session driver and emits a `SESSION` KV binding without
