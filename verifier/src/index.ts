@@ -36,6 +36,59 @@ type WorldVerifyResponse = {
   [key: string]: unknown;
 };
 
+/**
+ * Shape of an IDKit v4 result.
+ *
+ * Only v4 results may be sent to `POST /api/v4/verify/{rp_id}`. A v3 result
+ * (or the raw bridge envelope) is rejected by the portal with a bare
+ * `world_id_verification_failed` and no `detail`/`code`, so we check the
+ * envelope *before* forwarding to surface a clearer error.
+ */
+type IdkitV4Result = {
+  protocol_version: "4.0";
+  nonce: string;
+  action: string;
+  responses: Array<{
+    identifier: string;
+    issuer_schema_id: number;
+    proof: string[];
+    nullifier: string;
+    expires_at_min: number;
+  }>;
+  environment: string;
+  [key: string]: unknown;
+};
+
+function isIdkitV4Result(value: unknown): value is IdkitV4Result {
+  if (typeof value !== "object" || value === null) return false;
+
+  const result = value as Record<string, unknown>;
+
+  if (result.protocol_version !== "4.0") return false;
+  if (typeof result.nonce !== "string") return false;
+  if (typeof result.action !== "string") return false;
+  if (typeof result.environment !== "string") return false;
+  if (!Array.isArray(result.responses) || result.responses.length === 0) {
+    return false;
+  }
+
+  return result.responses.every((item) => {
+    if (typeof item !== "object" || item === null) return false;
+
+    const response = item as Record<string, unknown>;
+
+    return (
+      typeof response.identifier === "string" &&
+      typeof response.issuer_schema_id === "number" &&
+      // A v4 proof is an array of compressed Groth16 elements + Merkle root.
+      Array.isArray(response.proof) &&
+      response.proof.every((element) => typeof element === "string") &&
+      typeof response.nullifier === "string" &&
+      typeof response.expires_at_min === "number"
+    );
+  });
+}
+
 const app = new Hono<{ Bindings: Env }>();
 
 // Accept requests from any origin (the webui is served from a different
@@ -196,6 +249,23 @@ app.post("/verify", async (c) => {
       {
         ok: false,
         error: "idkitResponse is required",
+      },
+      400
+    );
+  }
+
+  // Reject malformed/non-v4 payloads before forwarding. The portal answers
+  // such requests with `success: false` and no `detail`/`code`, which is hard
+  // to debug — fail early with an explicit reason instead.
+  if (!isIdkitV4Result(body.idkitResponse)) {
+    return c.json(
+      {
+        ok: false,
+        error: "invalid_idkit_result",
+        detail:
+          "The IDKit result is not a World ID 4.0 result. Check the client's " +
+          "environment and allow_legacy_proofs settings (legacy v3 proofs " +
+          "cannot be verified at the v4 endpoint).",
       },
       400
     );

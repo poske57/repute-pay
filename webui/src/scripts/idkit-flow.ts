@@ -485,11 +485,16 @@ export function initVerificationFlow(): void {
       };
 
       // Step 2: Build the IDKit request and finalize it with a preset.
+      //
+      // World ID 4.0 proofs only. `allow_legacy_proofs: true` would let the
+      // bridge fall back to a v3 proof (requested with `verification_level`),
+      // and a v3 result cannot be verified at the v4 endpoint — the portal
+      // then rejects it with a bare `world_id_verification_failed`.
       const request = await IDKit.request({
         app_id: appId,
         action,
         rp_context: rpContext,
-        allow_legacy_proofs: true,
+        allow_legacy_proofs: false,
         environment,
       }).preset(proofOfHuman());
 
@@ -519,8 +524,30 @@ export function initVerificationFlow(): void {
       }
 
       // Step 5: Forward the IDKit result to the verifier verbatim.
+      const idkitResult = completion.result as IDKitResult & Record<string, unknown>;
+
+      // Guard against forwarding a malformed/non-v4 envelope. If this fires,
+      // IDKit returned the raw bridge payload instead of a v4 result, which
+      // means the request/response never went through v4 normalization
+      // (usually an environment or allow_legacy_proofs mismatch).
+      if (
+        idkitResult.protocol_version !== "4.0" ||
+        !Array.isArray(idkitResult.responses) ||
+        typeof idkitResult.nonce !== "string" ||
+        typeof idkitResult.environment !== "string"
+      ) {
+        throw new Error(
+          "IDKit の結果が World ID 4.0 の形式ではありません（environment と allow_legacy_proofs を確認してください）",
+        );
+      }
+
       setState("verifying");
-      const verified = await callVerify(verifierUrl, completion.result);
+      if (isDevBuild) {
+        // Log the exact payload being verified so it can be compared with the
+        // verifier's debug report.
+        console.debug("[idkit] verify payload", idkitResult);
+      }
+      const verified = await callVerify(verifierUrl, idkitResult);
 
       // Step 6: Show the verifier's signed response.
       showResult(verified);
