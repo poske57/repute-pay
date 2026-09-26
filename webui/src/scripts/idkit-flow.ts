@@ -37,7 +37,7 @@ import {
  * and at runtime via the `verifier URL` input on the page.
  */
 const DEFAULT_VERIFIER_URL = (
-  import.meta.env.PUBLIC_VERIFIER_URL ?? "http://127.0.0.1:8787"
+  import.meta.env.PUBLIC_VERIFIER_URL ?? "https://verifier.afabl.fyi/"
 ).replace(/\/+$/, "");
 
 /** Removes trailing slashes so paths can be appended safely. */
@@ -285,7 +285,8 @@ export function initVerificationFlow(): void {
   const errorDetail = $<HTMLPreElement>("error-detail");
 
   // Default values come from query params (handy for repeat runs) or defaults.
-  const params = new URLSearchParams(window.location.search);
+  const APP_ID = "app_73d8b931b40f48482543d6ca7d978520";
+  const RP_ID = "rp_07f5ccec8408bd88";
   verifierUrlInput.value = params.get("verifier_url") ?? verifierUrlInput.value ?? DEFAULT_VERIFIER_URL;
   appIdInput.value = params.get("app_id") ?? appIdInput.value;
   rpIdInput.value = params.get("rp_id") ?? rpIdInput.value;
