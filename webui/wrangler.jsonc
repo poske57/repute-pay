@@ -3,7 +3,7 @@
   // generates the final config at ./dist/server/wrangler.json during build.
   // https://developers.cloudflare.com/workers/wrangler/configuration/
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "repute-pay-app",
+  "name": "repute-pay-webui",
   "compatibility_date": "2025-09-01",
   "compatibility_flags": ["nodejs_compat"],
   // Static assets are served directly from the Astro client build.
