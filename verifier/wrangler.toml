@@ -3,5 +3,5 @@ main = "src/index.ts"
 compatibility_date = "2026-09-22"
 
 [vars]
-WORLD_RP_ID = "app_xxxxxxxxxxxxxxxxx"
+WORLD_RP_ID = "rp_07f5ccec8408bd88"
 
