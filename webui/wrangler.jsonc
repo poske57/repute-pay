@@ -1,0 +1,17 @@
+{
+  // Root config. Astro's Cloudflare adapter inherits these settings and
+  // generates the final config at ./dist/server/wrangler.json during build.
+  // https://developers.cloudflare.com/workers/wrangler/configuration/
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "proud-pegasi",
+  "compatibility_date": "2025-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  // Static assets are served directly from the Astro client build.
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "./dist/client"
+  },
+  "observability": {
+    "enabled": true
+  }
+}

@@ -9,12 +9,19 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "deploy": "npm run build && wrangler deploy --config dist/client/wrangler.json",
+    "cf:preview": "npm run build && wrangler dev --config dist/client/wrangler.json",
+    "postinstall": "node scripts/patch-workerd.mjs"
   },
   "dependencies": {
     "astro": "^7.3.5"
   },
   "allowScripts": {
     "esbuild": true
+  },
+  "devDependencies": {
+    "@astrojs/cloudflare": "^14.3.3",
+    "wrangler": "^4.141.0"
   }
 }
